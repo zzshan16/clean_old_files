@@ -82,7 +82,7 @@ int main(int argc, char** argv){
     puts("error: popen() failed");
     return 1;
   }
-  char* command_string = malloc(8192);
+  char* command_string = malloc(16384);// incase path to the dir is close to 4096 characters
 
   while(fgets(line, 1024, names)){
     *(line + strlen(line) -1) = '\0'; //replaces newline character with null terminator
@@ -98,7 +98,7 @@ int main(int argc, char** argv){
     }
     if (age < t){
       *(command_string + 9) = 'y';
-      puts(command_string);
+      //puts(command_string);
       FILE* date = popen(command_string, "r");
       char* date_string = malloc(8);
       if (!date_string) goto malloc_failed;
