@@ -36,16 +36,16 @@ int main(int argc, char** argv){
   t -= DURATION;
   char* dir_to_sort;
   if (argc == 2){
-    if (strlen(*(argv+1)) > 200){
+    if (strlen(*(argv+1)) > 4096){
       puts("error: path too long");
       return 3;
-    }
+    }//max file path is 4096
     dir_to_sort = *(argv+1);
   }
   else {
     dir_to_sort = ".";
   }
-  char *line = (char *)malloc(1024*sizeof(char));
+  char *line = malloc(8192);
   if (!line) {
   malloc_failed:
     puts("error: malloc() failed");
@@ -76,17 +76,18 @@ int main(int argc, char** argv){
     goto input_loop;
   }
   sprintf(line, "cd %s && ls ./*.png ./*.jpg ./*.gif ./*.webm ./*.mkv ./*.mp4 ./*.mp3 ./*.pdf ./*.wav ./*.zip ./*.rar ./*.7z ./*.tar.gz 2> /dev/null", dir_to_sort); //add/remove/replace the extensions in this string to control what is being sorted
-  puts(line); // the "./" is to prevent bad filenames causing errors
+  //puts(line); // the "./" is to prevent bad filenames causing errors
   FILE* names = popen(line, "r");
   if (!names) {
     puts("error: popen() failed");
     return 1;
   }
-  char* command_string = malloc(sizeof(char)*strlen(line)+200);
+  char* command_string = malloc(8192);
+
   while(fgets(line, 1024, names)){
     *(line + strlen(line) -1) = '\0'; //replaces newline character with null terminator
     sprintf(command_string, "stat -c %%Y \"%s/%s\"", dir_to_sort, line);
-    puts(command_string);
+    //puts(command_string);
     FILE* temp_age = popen(command_string, "r");
     unsigned long long age;
     if (fscanf(temp_age, "%llu", &age) == EOF){
@@ -94,16 +95,16 @@ int main(int argc, char** argv){
       pclose(temp_age);
       free(command_string);
       return 3;
-      }
+    }
     if (age < t){
       *(command_string + 9) = 'y';
       puts(command_string);
       FILE* date = popen(command_string, "r");
-      char* date_string = malloc(9*sizeof(char));
+      char* date_string = malloc(8);
       if (!date_string) goto malloc_failed;
       fgets(date_string, 8, date);//it works?
       sprintf(command_string, "mkdir \"%s/%s\" 2>/dev/null", dir_to_sort, date_string);
-      puts(command_string);
+      //puts(command_string);
       system(command_string);
       sprintf(command_string, "mv \"%s/%s\" \"%s/%s\"", dir_to_sort, line, dir_to_sort, date_string);
       puts(command_string);
@@ -112,7 +113,6 @@ int main(int argc, char** argv){
       pclose(date);
     }
     pclose(temp_age);
-    
   }
   free(command_string);
   free(line);
